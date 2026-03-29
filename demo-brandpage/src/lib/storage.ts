@@ -1,6 +1,14 @@
 import type { DemoSite } from '../types'
 import { STORAGE_INDEX_KEY, storageSiteKey } from '../types'
 
+/** localStorage cheio (logo em base64 costuma estourar o limite) */
+export class StorageQuotaError extends Error {
+  constructor() {
+    super('STORAGE_QUOTA')
+    this.name = 'StorageQuotaError'
+  }
+}
+
 function readIds(): string[] {
   try {
     const raw = localStorage.getItem(STORAGE_INDEX_KEY)
@@ -27,7 +35,23 @@ export function loadSiteById(id: string): DemoSite | null {
 }
 
 export function saveSite(site: DemoSite) {
-  localStorage.setItem(storageSiteKey(site.id), JSON.stringify(site))
+  let raw: string
+  try {
+    raw = JSON.stringify(site)
+  } catch {
+    throw new Error('Não foi possível serializar os dados do site.')
+  }
+  try {
+    localStorage.setItem(storageSiteKey(site.id), raw)
+  } catch (e) {
+    if (
+      e instanceof DOMException &&
+      (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014)
+    ) {
+      throw new StorageQuotaError()
+    }
+    throw e
+  }
   const ids = readIds()
   if (!ids.includes(site.id)) {
     writeIds([...ids, site.id])
@@ -54,7 +78,12 @@ export function patchSite(id: string, patch: Partial<DemoSite>) {
   const cur = loadSiteById(id)
   if (!cur) return null
   const next: DemoSite = { ...cur, ...patch, updated_at: new Date().toISOString() }
-  saveSite(next)
+  try {
+    saveSite(next)
+  } catch (e) {
+    if (e instanceof StorageQuotaError) return null
+    throw e
+  }
   return next
 }
 

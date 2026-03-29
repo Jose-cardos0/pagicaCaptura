@@ -23,8 +23,9 @@ body {
   font-family: var(--font-body);
 }
 
+/* Altura mínima só no body evita #root “esticar” layout e confundir altura das sections no devtools */
 #root {
-  min-height: 100vh;
+  min-height: 0;
 }
 
 .scrollbar-shopee {
@@ -46,4 +47,96 @@ body {
   background: #ee4d2d;
   border-radius: 6px;
   border: 2px solid #18181b;
+}
+
+/* Hero vendas (alinhado à página venda) */
+@keyframes sales-aurora {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(40px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-30px, 20px) scale(0.95);
+  }
+}
+
+.animate-sales-aurora1 {
+  animation: sales-aurora 8s ease-in-out infinite;
+}
+.animate-sales-aurora2 {
+  animation: sales-aurora 11s ease-in-out infinite reverse;
+}
+.animate-sales-aurora3 {
+  animation: sales-aurora 9s ease-in-out infinite 2s;
+}
+
+@keyframes sales-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-sales-float {
+  animation: sales-float 3.5s ease-in-out infinite;
+}
+
+/* CTA hero: faixa de luz da direita → esquerda, loop */
+@keyframes hero-cta-light-sweep {
+  0% {
+    left: 105%;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  100% {
+    left: -55%;
+    opacity: 0.75;
+  }
+}
+
+.hero-cta-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-cta-shine::before {
+  content: "";
+  position: absolute;
+  top: -35%;
+  bottom: -35%;
+  width: 42%;
+  left: 105%;
+  z-index: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 32%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0) 68%,
+    transparent 100%
+  );
+  transform: skewX(-18deg);
+  animation: hero-cta-light-sweep 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sales-aurora1,
+  .animate-sales-aurora2,
+  .animate-sales-aurora3,
+  .animate-sales-float {
+    animation: none !important;
+  }
+
+  .hero-cta-shine::before {
+    animation: none !important;
+  }
 }
